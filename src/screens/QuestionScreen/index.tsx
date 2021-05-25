@@ -6,6 +6,8 @@ import { decode } from 'html-entities'
 
 import { getQuestions } from '../../services/getQuestions'
 import { Categories, Dificulty, Response } from '../../services/types'
+import { getObject, storeObject } from '../../services/storageService'
+import { KEYS } from '../../constants/keys'
 
 import { AnswerSelectButton, AnswerConfirmModal } from '../../components'
 
@@ -24,6 +26,15 @@ type RouteParam = {
     previousAnswerWasRight?: boolean
     questionNumber?: number
   }
+}
+
+type StorageObject = {
+  questionName: string
+  questionNumber: number
+  rightAnswer: boolean
+  wrongAnswer: boolean
+  date: string
+  dificulty: string
 }
 
 const shuffle = (array: string[]) => {
@@ -67,13 +78,8 @@ export const QuestionScreen = () => {
       category,
       dificulty,
       upgradeDificulty,
-      downgradeDificulty,
-      correctAnswers,
-      wrongAnswers
+      downgradeDificulty
     } = route.params
-
-    console.log('ACERTOU ===', correctAnswers)
-    console.log('ERROU ===', wrongAnswers)
 
     function setDificulty(receivedDificulty: Dificulty) {
       navigation.setParams({
@@ -151,7 +157,7 @@ export const QuestionScreen = () => {
     }
   }
 
-  const checkAnswer = () => {
+  const checkAnswer = async () => {
     const {
       category,
       dificulty,
@@ -171,7 +177,7 @@ export const QuestionScreen = () => {
       upgradeDificulty,
       downgradeDificulty,
       previousAnswerWasRight,
-      questionNumber: !!questionNumber ? questionNumber + 1 : 2
+      questionNumber: questionNumber ? questionNumber + 1 : 2
     }
 
     navigationParams = {
@@ -182,12 +188,12 @@ export const QuestionScreen = () => {
     if (userAnswerChoise === correctAnswer) {
       navigationParams = {
         ...navigationParams,
-        correctAnswers: !!correctAnswers ? correctAnswers + 1 : 1
+        correctAnswers: correctAnswers ? correctAnswers + 1 : 1
       }
     } else if (userAnswerChoise !== correctAnswer) {
       navigationParams = {
         ...navigationParams,
-        wrongAnswers: !!wrongAnswers ? wrongAnswers + 1 : 1
+        wrongAnswers: wrongAnswers ? wrongAnswers + 1 : 1
       }
     }
 
@@ -207,6 +213,21 @@ export const QuestionScreen = () => {
         })
     }
 
+    const setDataToStorage: StorageObject = {
+      date: new Date().toDateString(),
+      dificulty: dificulty || 'medium',
+      questionName: decode(question),
+      questionNumber: questionNumber || 1,
+      rightAnswer: true,
+      wrongAnswer: false
+    }
+
+    const storageData = await getObject(KEYS[category!])
+
+    storageData.push(setDataToStorage)
+
+    await storeObject(KEYS[category!], storageData)
+
     const nextScreen =
       route.name === 'QuestionScreenB' ? 'QuestionScreenA' : 'QuestionScreenB'
 
@@ -215,37 +236,39 @@ export const QuestionScreen = () => {
 
   return (
     <>
-      {loading ? (
-        <View style={styles.activityLoaderContainer}>
-          <ActivityIndicator size="large" color="#192938" />
-        </View>
-      ) : (
-        <SafeAreaView style={styles.safeArea}>
-          <View style={styles.mainContainer}>
-            <View style={styles.header}>
-              <Text style={styles.headerQuestion}>
-                Question {route.params.questionNumber}
-              </Text>
-              <View style={styles.badgeContainer}>
-                <Text style={styles.badgeLabel}>{getLevelBadge()}</Text>
-              </View>
-            </View>
-            <View style={{ marginVertical: 20 }}>
-              <Text style={{ fontSize: 20 }}>{decode(question)}</Text>
-            </View>
-            {answers.map((answer) => (
-              <View style={styles.answerWrapper} key={answer}>
-                <AnswerSelectButton
-                  onPress={() => handleUserChoise(answer)}
-                  disabled={userAnswerChoise !== '' && userAnswerChoise !== answer}
-                  selected={correctAnswer === answer}
-                  label={decode(answer)}
-                />
-              </View>
-            ))}
+      {loading
+        ? (
+          <View style={styles.activityLoaderContainer}>
+            <ActivityIndicator size="large" color="#192938" />
           </View>
-        </SafeAreaView>
-      )}
+        )
+        : (
+          <SafeAreaView style={styles.safeArea}>
+            <View style={styles.mainContainer}>
+              <View style={styles.header}>
+                <Text style={styles.headerQuestion}>
+                  Question {route.params.questionNumber}
+                </Text>
+                <View style={styles.badgeContainer}>
+                  <Text style={styles.badgeLabel}>{getLevelBadge()}</Text>
+                </View>
+              </View>
+              <View style={{ marginVertical: 20 }}>
+                <Text style={{ fontSize: 20 }}>{decode(question)}</Text>
+              </View>
+              {answers.map((answer) => (
+                <View style={styles.answerWrapper} key={answer}>
+                  <AnswerSelectButton
+                    onPress={() => handleUserChoise(answer)}
+                    disabled={userAnswerChoise !== '' && userAnswerChoise !== answer}
+                    selected={correctAnswer === answer}
+                    label={decode(answer)}
+                  />
+                </View>
+              ))}
+            </View>
+          </SafeAreaView>
+        )}
       <AnswerConfirmModal
         visible={userAnswerChoise !== ''}
         userAnswerChoise={decode(userAnswerChoise)}
