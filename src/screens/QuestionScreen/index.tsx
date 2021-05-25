@@ -6,7 +6,7 @@ import { decode } from 'html-entities'
 
 import { getQuestions } from '../../services/getQuestions'
 import { Categories, Dificulty, Response } from '../../services/types'
-import { getObject, storeObject } from '../../services/storageService'
+import { getObject, removeItem, storeData, storeObject } from '../../services/storageService'
 import { KEYS } from '../../constants/keys'
 
 import { AnswerSelectButton, AnswerConfirmModal } from '../../components'
@@ -218,20 +218,34 @@ export const QuestionScreen = () => {
       dificulty: dificulty || 'medium',
       questionName: decode(question),
       questionNumber: questionNumber || 1,
-      rightAnswer: true,
-      wrongAnswer: false
+      rightAnswer: userAnswerChoise === correctAnswer,
+      wrongAnswer: userAnswerChoise !== correctAnswer
     }
 
-    const storageData = await getObject(KEYS[category!])
+    let storageData = await getObject(KEYS[category!])
+
+    if (questionNumber === 1 && storageData !== null) {
+      await removeItem(KEYS[category!])
+    }
+
+    if (storageData === null) {
+      storageData = []
+    }
 
     storageData.push(setDataToStorage)
 
     await storeObject(KEYS[category!], storageData)
 
+    if (questionNumber === 10) {
+      await storeData(`TOKEN_${KEYS[category!]}`, `CATEGORY ${category} - Concluded in ${new Date().toDateString()}`)
+    }
+
     const nextScreen =
       route.name === 'QuestionScreenB' ? 'QuestionScreenA' : 'QuestionScreenB'
 
-    navigation.replace(nextScreen, navigationParams)
+    const navigateTo = questionNumber === 10 ? 'ResultsScreen' : nextScreen
+
+    navigation.replace(navigateTo, navigationParams)
   }
 
   return (
@@ -261,7 +275,7 @@ export const QuestionScreen = () => {
                   <AnswerSelectButton
                     onPress={() => handleUserChoise(answer)}
                     disabled={userAnswerChoise !== '' && userAnswerChoise !== answer}
-                    selected={correctAnswer === answer}
+                    selected={userAnswerChoise === answer}
                     label={decode(answer)}
                   />
                 </View>

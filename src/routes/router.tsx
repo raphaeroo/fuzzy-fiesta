@@ -2,7 +2,7 @@ import React from 'react'
 import { NavigationContainer } from '@react-navigation/native'
 import { createNativeStackNavigator } from 'react-native-screens/native-stack'
 
-import { HomeScreen, QuestionScreen } from '../screens'
+import { HomeScreen, QuestionScreen, ResultsScreen } from '../screens'
 
 const { Screen, Navigator } = createNativeStackNavigator()
 export const Router = () => {
@@ -12,7 +12,7 @@ export const Router = () => {
         <Screen
           name="HomeScreen"
           component={HomeScreen}
-          /* 
+          /*
             Estou definindo algumas propriedades no header do próprio navigation
             como title, color do title, e cor do background
           */
@@ -20,8 +20,9 @@ export const Router = () => {
             headerTitle: 'Quizz App',
             headerTitleStyle: { color: 'white' },
             headerStyle: {
-              backgroundColor: '#192938',
+              backgroundColor: '#192938'
             },
+            headerHideBackButton: true
           }}
         />
         <Screen
@@ -30,7 +31,7 @@ export const Router = () => {
           options={{
             headerTitleStyle: { color: 'white' },
             headerStyle: {
-              backgroundColor: '#192938',
+              backgroundColor: '#192938'
             },
             replaceAnimation: 'push',
             headerHideBackButton: true
@@ -42,7 +43,19 @@ export const Router = () => {
           options={{
             headerTitleStyle: { color: 'white' },
             headerStyle: {
-              backgroundColor: '#192938',
+              backgroundColor: '#192938'
+            },
+            replaceAnimation: 'push',
+            headerHideBackButton: true
+          }}
+        />
+        <Screen
+          name="ResultsScreen"
+          component={ResultsScreen}
+          options={{
+            headerTitleStyle: { color: 'white' },
+            headerStyle: {
+              backgroundColor: '#192938'
             },
             replaceAnimation: 'push',
             headerHideBackButton: true
