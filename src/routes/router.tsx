@@ -8,7 +8,7 @@ const { Screen, Navigator } = createNativeStackNavigator()
 export const Router = () => {
   return (
     <NavigationContainer>
-      <Navigator>
+      <Navigator screenOptions={{ headerTopInsetEnabled: false }}>
         <Screen
           name="HomeScreen"
           component={HomeScreen}

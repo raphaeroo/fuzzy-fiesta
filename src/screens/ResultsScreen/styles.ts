@@ -11,7 +11,8 @@ export default StyleSheet.create({
   },
   container: {
     flex: 1,
-    justifyContent: 'space-between'
+    justifyContent: 'space-between',
+    paddingBottom: 20
   },
   header: {
     justifyContent: 'center',
